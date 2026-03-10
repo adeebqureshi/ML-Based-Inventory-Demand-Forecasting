@@ -71,39 +71,19 @@ def render(df: pd.DataFrame, selected_product: str, avg_daily: float,
     fig_h.update_layout(**chart_layout(380, ""))
     st.plotly_chart(fig_h, use_container_width=True)
 
-    # ── Stats tables ──────────────────────────────────────────────────────────
-    c1, c2 = st.columns(2)
-
-    with c1:
-        _section("Summary Statistics")
-        st.dataframe(
-            pd.DataFrame({
-                "Metric": ["Mean", "Median", "Std Dev", "Min", "Max"],
-                "Value": [
-                    f"{df['quantity_sold'].mean():.1f}",
-                    f"{df['quantity_sold'].median():.1f}",
-                    f"{df['quantity_sold'].std():.1f}",
-                    f"{df['quantity_sold'].min():.0f}",
-                    f"{df['quantity_sold'].max():.0f}",
-                ],
-            }),
-            use_container_width=True,
-            hide_index=True,
-        )
-
-    with c2:
-        _section("Dataset Info")
-        st.dataframe(
-            pd.DataFrame({
-                "Attribute": ["Total Records", "Date Range", "Latest Date", "Quality"],
-                "Value": [
-                    f"{len(df)} days",
-                    f"{df['date'].min().strftime('%Y-%m-%d')} → "
-                    f"{df['date'].max().strftime('%Y-%m-%d')}",
-                    df["date"].max().strftime("%Y-%m-%d"),
-                    "Good ✅",
-                ],
-            }),
-            use_container_width=True,
-            hide_index=True,
-        )
+    # ── Dataset Info ──────────────────────────────────────────────────────────
+    _section("Dataset Info")
+    st.dataframe(
+        pd.DataFrame({
+            "Attribute": ["Total Records", "Date Range", "Latest Date", "Quality"],
+            "Value": [
+                f"{len(df)} days",
+                f"{df['date'].min().strftime('%Y-%m-%d')} → "
+                f"{df['date'].max().strftime('%Y-%m-%d')}",
+                df["date"].max().strftime("%Y-%m-%d"),
+                "Good ✅",
+            ],
+        }),
+        use_container_width=True,
+        hide_index=True,
+    )

@@ -12,13 +12,18 @@ from ml_inventory_forecasting.components.forecast_tab import render as render_fo
 from ml_inventory_forecasting.components.inventory_tab import render as render_inventory
 from ml_inventory_forecasting.components.performance_tab import render as render_performance
 from ml_inventory_forecasting.ml.features import prepare_features
-from ml_inventory_forecasting.ml.model import train_model, forecast_next_7
+from ml_inventory_forecasting.ml.model import train_model, train_xgboost, forecast_next_7
 from ml_inventory_forecasting.ml.metrics import calc_metrics
 
 
 @st.cache_resource
 def train_model_cached(_df):
     return train_model(_df, split_ratio=0.8)
+
+
+@st.cache_resource
+def train_xgboost_cached(_df):
+    return train_xgboost(_df, split_ratio=0.8)
 
 
 page_setup()
@@ -37,7 +42,6 @@ if side["data_loaded"] and side["df_raw"] is not None:
 # ── Welcome Screen ────────────────────────────────────────────────────────────
 if not st.session_state.data_loaded:
 
-    # Greeting banner
     st.markdown(
         "<div style='background:#ffffff;border:1px solid #E2E8F0;border-radius:14px;"
         "padding:1.75rem 2rem 1.5rem;margin-bottom:1.25rem;"
@@ -53,7 +57,6 @@ if not st.session_state.data_loaded:
         unsafe_allow_html=True,
     )
 
-    # Feature cards — HRdream quick-action style
     c1, c2, c3 = st.columns(3)
 
     cards = [
@@ -117,17 +120,27 @@ try:
         st.error("Dataset must contain at least 10 records.")
         st.stop()
 
-    model, split, y, y_pred, model_metrics = train_model_cached(df)
+    # ── Train Random Forest ───────────────────────────────────────────────────
+    rf_model, rf_split, y, rf_y_pred, rf_model_metrics = train_model_cached(df)
 
-    metrics = calc_metrics(y.iloc[split:], y_pred)
-    if metrics is None:
-        metrics = {}
-    metrics["MAPE"] = model_metrics.get("MAPE", 0)
+    rf_metrics = calc_metrics(y.iloc[rf_split:], rf_y_pred) or {}
+    rf_metrics["MAPE"] = rf_model_metrics.get("MAPE", 0)
 
-    forecast_7_days = forecast_next_7(df, model)
+    # ── Train XGBoost ─────────────────────────────────────────────────────────
+    xgb_model, xgb_split, _, xgb_y_pred, xgb_model_metrics = train_xgboost_cached(df)
 
-    avg_daily = float(np.mean(y_pred))
-    std_daily = float(np.std(y_pred, ddof=1)) if len(y_pred) > 1 else 0.0
+    if xgb_model is not None:
+        xgb_metrics = calc_metrics(y.iloc[xgb_split:], xgb_y_pred) or {}
+        xgb_metrics["MAPE"] = xgb_model_metrics.get("MAPE", 0)
+    else:
+        xgb_metrics = {}
+        xgb_y_pred  = None
+
+    # ── Use RF for downstream inventory calcs (primary model) ─────────────────
+    forecast_7_days = forecast_next_7(df, rf_model)
+
+    avg_daily = float(np.mean(rf_y_pred))
+    std_daily = float(np.std(rf_y_pred, ddof=1)) if len(rf_y_pred) > 1 else 0.0
 
     z_score      = Z_SCORES.get(side["service_level"], 1.65)
     EOQ          = (np.sqrt((2 * avg_daily * 365 * side["order_cost"]) /
@@ -146,7 +159,11 @@ try:
     with tab3:
         render_inventory(avg_daily, EOQ, ROP, safety_stock, side["lead_time"])
     with tab4:
-        render_performance(df, model, y, split, y_pred, metrics)
+        render_performance(
+            df,
+            rf_model, y, rf_split, rf_y_pred, rf_metrics,
+            xgb_model, xgb_split, xgb_y_pred, xgb_metrics,
+        )
 
 except Exception as e:
     st.error(f"An error occurred: {str(e)}")
