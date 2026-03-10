@@ -1,0 +1,3 @@
+2026-03-07 21:41:48,627 - INFO - Best parameters: {'n_estimators': 200, 'min_samples_split': 5, 'min_samples_leaf': 1, 'max_depth': 5}
+2026-03-07 21:41:49,323 - INFO - Best parameters: {'n_estimators': 200, 'min_samples_split': 5, 'min_samples_leaf': 1, 'max_depth': 5}
+2026-03-07 21:41:56,615 - INFO - Best parameters: {'n_estimators': 200, 'min_samples_split': 2, 'min_samples_leaf': 2, 'max_depth': 5}
