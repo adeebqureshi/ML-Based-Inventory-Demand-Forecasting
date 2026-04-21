@@ -120,8 +120,11 @@ def _overall_winner_banner(rf_metrics, xgb_metrics):
 
 def render(df,
            rf_model,  y,  rf_split,  rf_y_pred,  rf_metrics,
-           xgb_model,     xgb_split, xgb_y_pred, xgb_metrics):
+           xgb_model=None,     xgb_split=None, xgb_y_pred=None, xgb_metrics=None):
 
+    if xgb_metrics is None:
+        xgb_metrics = {}
+    
     xgb_available = xgb_model is not None and xgb_y_pred is not None
 
     # ── Section header ────────────────────────────────────────────────────────
@@ -213,7 +216,7 @@ def render(df,
                 )
                 st.plotly_chart(
                     create_feature_importance_chart(rf_model, MODEL_FEATURE_NAMES),
-                    use_container_width=True,
+                    width='stretch',
                 )
             with fi_c2:
                 st.markdown(
@@ -223,10 +226,10 @@ def render(df,
                 )
                 st.plotly_chart(
                     create_feature_importance_chart(xgb_model, MODEL_FEATURE_NAMES),
-                    use_container_width=True,
+                    width='stretch',
                 )
         else:
             st.plotly_chart(
                 create_feature_importance_chart(rf_model, MODEL_FEATURE_NAMES),
-                use_container_width=True,
+                width='stretch',
             )

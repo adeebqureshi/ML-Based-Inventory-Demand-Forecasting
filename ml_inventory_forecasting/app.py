@@ -12,7 +12,7 @@ from ml_inventory_forecasting.components.forecast_tab import render as render_fo
 from ml_inventory_forecasting.components.inventory_tab import render as render_inventory
 from ml_inventory_forecasting.components.performance_tab import render as render_performance
 from ml_inventory_forecasting.ml.features import prepare_features
-from ml_inventory_forecasting.ml.model import train_model, forecast_next_7
+from ml_inventory_forecasting.ml.model import train_model, train_xgboost, forecast_next_7
 from ml_inventory_forecasting.ml.metrics import calc_metrics
 
 
@@ -29,6 +29,11 @@ if "data_loaded" not in st.session_state:
 
 render_header()
 side = render_sidebar()
+
+# Validate sidebar return value
+if side is None or not isinstance(side, dict):
+    st.error("Sidebar initialization failed")
+    st.stop()
 
 if side["data_loaded"] and side["df_raw"] is not None:
     st.session_state.df_raw      = side["df_raw"]
@@ -57,11 +62,11 @@ if not st.session_state.data_loaded:
     c1, c2, c3 = st.columns(3)
 
     cards = [
-        ("#2563EB", "rgba(37,99,235,0.1)", "📈", "Data Analysis",
+        ("#2563EB", "rgba(37,99,235,0.1)", "", "Data Analysis",
          "Visualise historical demand patterns and seasonal trends."),
-        ("#0D9488", "rgba(13,148,136,0.1)", "🤖", "ML Forecasting",
+        ("#0D9488", "rgba(13,148,136,0.1)", "", "ML Forecasting",
          "Predict future drug demand with Random Forest models."),
-        ("#7C3AED", "rgba(124,58,237,0.1)", "📦", "Inventory Optimisation",
+        ("#7C3AED", "rgba(124,58,237,0.1)", "", "Inventory Optimisation",
          "Calculate EOQ, safety stock, and reorder points automatically."),
     ]
 
@@ -116,6 +121,14 @@ try:
     if len(df) < 10:
         st.error("Dataset must contain at least 10 records.")
         st.stop()
+    
+    # Warn if dataset is small
+    if len(df) < 50:
+        st.warning(f"Warning: Small dataset detected ({len(df)} records). Predictions may be unreliable.")
+    
+    # Warn if dataset contains zero quantities
+    if (df["quantity_sold"] == 0).any():
+        st.warning("Warning: Dataset contains zero quantities. MAPE metric may be unreliable.")
 
     model, split, y, y_pred, model_metrics = train_model_cached(df)
 
@@ -123,6 +136,15 @@ try:
     if metrics is None:
         metrics = {}
     metrics["MAPE"] = model_metrics.get("MAPE", 0)
+
+    # Train XGBoost model for comparison
+    xgb_model, xgb_split, xgb_y, xgb_y_pred, xgb_model_metrics = train_xgboost(df)
+    xgb_metrics = {}
+    if xgb_y_pred is not None:
+        xgb_metrics = calc_metrics(xgb_y.iloc[xgb_split:], xgb_y_pred)
+        if xgb_metrics is None:
+            xgb_metrics = {}
+        xgb_metrics["MAPE"] = xgb_model_metrics.get("MAPE", 0)
 
     forecast_7_days = forecast_next_7(df, model)
 
@@ -146,7 +168,8 @@ try:
     with tab3:
         render_inventory(avg_daily, EOQ, ROP, safety_stock, side["lead_time"])
     with tab4:
-        render_performance(df, model, y, split, y_pred, metrics)
+        render_performance(df, model, y, split, y_pred, metrics,
+                          xgb_model, xgb_split, xgb_y_pred, xgb_metrics)
 
 except Exception as e:
     st.error(f"An error occurred: {str(e)}")

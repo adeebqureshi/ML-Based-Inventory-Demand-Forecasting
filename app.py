@@ -60,11 +60,11 @@ if not st.session_state.data_loaded:
     c1, c2, c3 = st.columns(3)
 
     cards = [
-        ("#2563EB", "rgba(37,99,235,0.1)", "📈", "Data Analysis",
+        ("#2563EB", "rgba(37,99,235,0.1)", "", "Data Analysis",
          "Visualise historical demand patterns and seasonal trends."),
-        ("#0D9488", "rgba(13,148,136,0.1)", "🤖", "ML Forecasting",
+        ("#0D9488", "rgba(13,148,136,0.1)", "", "ML Forecasting",
          "Predict future drug demand with Random Forest models."),
-        ("#7C3AED", "rgba(124,58,237,0.1)", "📦", "Inventory Optimisation",
+        ("#7C3AED", "rgba(124,58,237,0.1)", "", "Inventory Optimisation",
          "Calculate EOQ, safety stock, and reorder points automatically."),
     ]
 

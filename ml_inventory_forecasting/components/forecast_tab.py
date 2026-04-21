@@ -18,7 +18,7 @@ def render(df_hist: pd.DataFrame, forecast_7_days: pd.DataFrame):
     _section("7-Day Demand Forecast")
     st.plotly_chart(
         create_forecast_chart(df_hist.tail(30), forecast_7_days),
-        use_container_width=True,
+        width='stretch',
     )
 
     c1, c2 = st.columns([2, 1])
@@ -28,7 +28,7 @@ def render(df_hist: pd.DataFrame, forecast_7_days: pd.DataFrame):
         fd = forecast_7_days.copy()
         fd["date"] = fd["date"].dt.strftime("%Y-%m-%d  (%A)")
         fd.columns = ["Date", "Predicted Demand (units)"]
-        st.dataframe(fd, use_container_width=True, hide_index=True)
+        st.dataframe(fd, width='stretch', hide_index=True)
 
     with c2:
         _section("Summary")
@@ -41,5 +41,5 @@ def render(df_hist: pd.DataFrame, forecast_7_days: pd.DataFrame):
             forecast_7_days.to_csv(index=False),
             "forecast_7days.csv",
             "text/csv",
-            use_container_width=True,
+            width='stretch',
         )

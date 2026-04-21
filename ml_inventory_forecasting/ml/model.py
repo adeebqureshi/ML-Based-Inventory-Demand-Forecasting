@@ -88,9 +88,18 @@ def train_model(df: pd.DataFrame, split_ratio: float = 0.8) -> Tuple:
         metrics : dict with key "MAPE" (float, already multiplied by 100)
     """
     df_feat = create_features(df)
+    
+    # Validate minimum dataset size
+    if len(df_feat) < 10:
+        raise ValueError(f"Insufficient data: need at least 10 records, got {len(df_feat)}")
+    
     X       = df_feat[FEATURES]
     y       = df_feat["quantity_sold"]
     split   = int(len(df_feat) * split_ratio)
+    
+    # Validate split produces both train and test sets
+    if split < 2 or split >= len(df_feat) - 1:
+        raise ValueError(f"Invalid train/test split: {split} out of {len(df_feat)} records")
 
     model = RandomForestRegressor(
         n_estimators=100,
@@ -99,6 +108,11 @@ def train_model(df: pd.DataFrame, split_ratio: float = 0.8) -> Tuple:
     )
     model.fit(X.iloc[:split], y.iloc[:split])
     y_pred  = model.predict(X.iloc[split:])
+    
+    # Validate predictions
+    if np.any(np.isnan(y_pred)) or np.any(np.isinf(y_pred)):
+        raise ValueError("Model produced invalid predictions (NaN or Inf values)")
+    
     metrics = {"MAPE": _calc_mape(y.iloc[split:], y_pred)}
 
     return model, split, y, y_pred, metrics
@@ -117,9 +131,18 @@ def train_xgboost(df: pd.DataFrame, split_ratio: float = 0.8) -> Tuple:
         return None, 0, None, None, {}
 
     df_feat = create_features(df)
+    
+    # Validate minimum dataset size
+    if len(df_feat) < 10:
+        raise ValueError(f"Insufficient data: need at least 10 records, got {len(df_feat)}")
+    
     X       = df_feat[FEATURES]
     y       = df_feat["quantity_sold"]
     split   = int(len(df_feat) * split_ratio)
+    
+    # Validate split produces both train and test sets
+    if split < 2 or split >= len(df_feat) - 1:
+        raise ValueError(f"Invalid train/test split: {split} out of {len(df_feat)} records")
 
     model = XGBRegressor(
         n_estimators=300,
@@ -131,12 +154,22 @@ def train_xgboost(df: pd.DataFrame, split_ratio: float = 0.8) -> Tuple:
         verbosity=0,
         n_jobs=-1,
     )
-    model.fit(
-        X.iloc[:split], y.iloc[:split],
-        eval_set=[(X.iloc[split:], y.iloc[split:])],
-        verbose=False,
-    )
+    
+    try:
+        model.fit(
+            X.iloc[:split], y.iloc[:split],
+            eval_set=[(X.iloc[split:], y.iloc[split:])],
+            verbose=False,
+        )
+    except Exception as e:
+        raise ValueError(f"XGBoost training failed: {str(e)}")
+    
     y_pred  = model.predict(X.iloc[split:])
+    
+    # Validate predictions
+    if np.any(np.isnan(y_pred)) or np.any(np.isinf(y_pred)):
+        raise ValueError("XGBoost produced invalid predictions (NaN or Inf values)")
+    
     metrics = {"MAPE": _calc_mape(y.iloc[split:], y_pred)}
 
     return model, split, y, y_pred, metrics

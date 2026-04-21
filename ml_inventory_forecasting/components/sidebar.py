@@ -49,7 +49,7 @@ def render():
             "<div style='padding:0.75rem 0.5rem 0.25rem;'>"
             "<span style='font-family:\"Plus Jakarta Sans\",sans-serif;"
             "font-size:1.1rem;font-weight:800;color:#0F172A;"
-            "letter-spacing:-0.02em;'>📦 InvForecast</span>"
+            "letter-spacing:-0.02em;'>InvForecast</span>"
             "</div>",
             unsafe_allow_html=True,
         )
@@ -57,12 +57,12 @@ def render():
 
         # ── Data Source ──────────────────────────────────────────────────────
         st.markdown("#### DATA SOURCE")
-        data_option = st.radio("", ["Sample Data", "Upload CSV"],
+        data_option = st.radio("Select data source", ["Sample Data", "Upload CSV"],
                                label_visibility="collapsed")
 
         if data_option == "Sample Data":
-            if st.button("Generate Sample Dataset", use_container_width=True):
-                with st.spinner("Generating…"):
+            if st.button("Generate Sample Dataset", width='stretch'):
+                with st.spinner("Generating..."):
                     try:
                         df_raw = generate_sample_data()
                         detection   = detect_columns(df_raw)
@@ -86,7 +86,7 @@ def render():
                     df_raw = pd.read_csv(uploaded)
                     st.success(f"{len(df_raw):,} records loaded")
                     st.markdown("#### Preview")
-                    st.dataframe(df_raw.head(5), use_container_width=True)
+                    st.dataframe(df_raw.head(5), width='stretch')
 
                     detection       = detect_columns(df_raw)
                     date_candidates = detection["candidates"]["date"]
@@ -115,7 +115,7 @@ def render():
                         if sequential:
                             start_date = st.date_input("Start date")
 
-                    if st.button("Confirm & Process Data", use_container_width=True):
+                    if st.button("Confirm & Process Data", width='stretch'):
                         date_arg    = None if sequential else date_col
                         product_arg = None if product_col == "None" else product_col
                         processed, error = process_data(
@@ -136,8 +136,10 @@ def render():
 
         # ── Inventory Parameters ─────────────────────────────────────────────
         st.markdown("#### PARAMETERS")
-        order_cost    = st.number_input("Order Cost (₹)",           value=order_cost,   min_value=0)
-        holding_cost  = st.number_input("Holding Cost (₹/unit/yr)", value=holding_cost, min_value=0.0)
+        order_cost    = st.number_input("Order Cost (₹)",           value=order_cost,   min_value=1, step=10,
+                                        help="Must be > 0 for EOQ calculation")
+        holding_cost  = st.number_input("Holding Cost (₹/unit/yr)", value=holding_cost, min_value=0.1, step=0.1,
+                                        help="Must be > 0 for EOQ calculation")
         lead_time     = st.number_input("Lead Time (Days)",         value=lead_time,    min_value=1, max_value=30)
         service_level = st.slider("Service Level (%)", min_value=90, max_value=99, value=service_level)
 

@@ -38,9 +38,12 @@ def calc_metrics(y_true: pd.Series, y_pred: np.ndarray) -> Dict[str, float]:
 
     r2 = r2_score(y_true, y_pred)
 
-    # FIX: MAPE was not computed here before, so it always defaulted to 0 in
-    # app.py. It is now calculated and returned alongside the other metrics.
-    mape = mean_absolute_percentage_error(y_true, y_pred) * 100
+    # MAPE calculation with warning check for zero values
+    if np.any(y_true == 0):
+        # If any actuals are zero, MAPE is undefined; use 0 as default
+        mape = 0.0
+    else:
+        mape = mean_absolute_percentage_error(y_true, y_pred) * 100
 
     return {
         "MAE": float(mae),

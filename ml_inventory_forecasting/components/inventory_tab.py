@@ -146,7 +146,7 @@ def render(avg_daily: float, EOQ: float, ROP: float,
         )
 
         fig_g, status = create_gauge(curr_stock, ROP, EOQ)
-        st.plotly_chart(fig_g, use_container_width=True)
+        st.plotly_chart(fig_g, width='stretch')
 
         _status_pill(curr_stock, ROP, EOQ)
 

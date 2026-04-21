@@ -63,6 +63,18 @@ def chart_layout(height=420, title=""):
 
 
 def create_forecast_chart(df_hist, df_fc):
+    # Validate required columns
+    required_hist = {"date", "quantity_sold"}
+    required_fc = {"date", "predicted_demand"}
+    
+    if not required_hist.issubset(df_hist.columns):
+        raise ValueError(f"Historical data missing columns: {required_hist - set(df_hist.columns)}")
+    if not required_fc.issubset(df_fc.columns):
+        raise ValueError(f"Forecast data missing columns: {required_fc - set(df_fc.columns)}")
+    
+    if len(df_hist) == 0 or len(df_fc) == 0:
+        raise ValueError("Historical or forecast data is empty")
+    
     fig = go.Figure()
 
     fig.add_trace(go.Bar(

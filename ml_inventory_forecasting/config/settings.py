@@ -28,7 +28,7 @@ Z_SCORES = {90: 1.28, 95: 1.65, 99: 2.33}
 def page_setup():
     st.set_page_config(
         page_title="ML Inventory Forecasting",
-        page_icon="📊",
+        page_icon="",
         layout="wide",
         initial_sidebar_state="expanded",
     )

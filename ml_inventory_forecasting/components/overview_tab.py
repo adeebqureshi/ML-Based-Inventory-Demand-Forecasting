@@ -69,7 +69,7 @@ def render(df: pd.DataFrame, selected_product: str, avg_daily: float,
     ))
 
     fig_h.update_layout(**chart_layout(380, ""))
-    st.plotly_chart(fig_h, use_container_width=True)
+    st.plotly_chart(fig_h, width='stretch')
 
     # ── Dataset Info ──────────────────────────────────────────────────────────
     _section("Dataset Info")
@@ -84,6 +84,6 @@ def render(df: pd.DataFrame, selected_product: str, avg_daily: float,
                 "Good ✅",
             ],
         }),
-        use_container_width=True,
+        width='stretch',
         hide_index=True,
     )
