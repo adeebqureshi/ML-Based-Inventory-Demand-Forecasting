@@ -135,7 +135,7 @@ def render():
         st.markdown("---")
 
         # ── Inventory Parameters ─────────────────────────────────────────────
-        st.markdown("#### PARAMETERS")
+        st.markdown("#### INVENTORY OPTIMISATION PARAMETERS")
         order_cost    = st.number_input("Order Cost (₹)",           value=order_cost,   min_value=1, step=10,
                                         help="Must be > 0 for EOQ calculation")
         holding_cost  = st.number_input("Holding Cost (₹/unit/yr)", value=holding_cost, min_value=0.1, step=0.1,
