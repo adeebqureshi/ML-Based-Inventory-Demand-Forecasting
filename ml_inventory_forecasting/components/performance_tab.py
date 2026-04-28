@@ -140,11 +140,11 @@ def render(df,
         c1, c2, c3 = st.columns(3)
         _metric_card(c1, "Mean Absolute Error",
                      rf_metrics.get("MAE",  0), xgb_metrics.get("MAE",  0),
-                     fmt=".2f", lower_is_better=True, unit=" u")
+                     fmt=".2f", lower_is_better=True, unit=" units")
         _metric_card(c2, "Root Mean Square Error",
                      rf_metrics.get("RMSE", 0), xgb_metrics.get("RMSE", 0),
-                     fmt=".2f", lower_is_better=True, unit=" u")
-        _metric_card(c3, "Mean Abs % Error",
+                     fmt=".2f", lower_is_better=True, unit=" units")
+        _metric_card(c3, "Mean Absolute Percentage Error",
                      rf_metrics.get("MAPE", 0), xgb_metrics.get("MAPE", 0),
                      fmt=".2f", lower_is_better=True, unit="%")
     else:
